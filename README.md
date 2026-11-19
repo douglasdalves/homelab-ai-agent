@@ -1,24 +1,60 @@
-Local AI Infrastructure Agent
-Python · Ollama · MCP · Docker · Infrastructure Automation
+# Local AI Infrastructure Agent
 
-Project overview
+**Python · Ollama · Model Context Protocol · Docker**
 
-A locally hosted AI agent that interacts with infrastructure through the Model Context Protocol (MCP).
+A locally hosted terminal agent that translates natural-language requests into
+controlled infrastructure operations. It uses Ollama for local language-model
+inference and the Model Context Protocol (MCP) to communicate with a separate
+homelab MCP server.
 
-It uses a local LLM to understand natural language requests, invoke infrastructure tools and return contextual responses.
+## Key features
 
-Key features
-- Local LLM inference using Ollama.
-- MCP-based infrastructure integration.
-- Docker container monitoring and management.
-- Natural language interaction.
-- Controlled execution of administrative operations.
+- Local LLM inference with Ollama.
+- MCP integration with infrastructure tools.
+- Docker container health checks, inspection, and management.
+- Natural-language interaction from the terminal.
+- A restricted tool allowlist and explicit confirmation before container
+  changes.
 
-Architecture
+## Architecture
 
+```text
+┌────────────────────┐       ┌────────────────────┐
+│ User               │──────▶│ Python terminal    │
+│ Natural-language   │       │ agent              │
+│ request            │       └─────────┬──────────┘
+└────────────────────┘                 │
+                           ┌───────────┴────────────┐
+                           │                        │
+                     Ollama local             MCP over HTTP
+                     LLM inference                  │
+                                            SSH local port forward
+                                                    │
+                                          ┌─────────▼──────────┐
+                                          │ Homelab MCP server │
+                                          └─────────┬──────────┘
+                                                    │
+                                                  Docker
+```
 
-Example interaction
+The agent connects to Ollama locally. Infrastructure requests travel through
+an SSH tunnel to the MCP server; the MCP port does not need to be exposed to
+the public internet.
 
-User: Check the status of my Raspberry Pi containers.
+## Example interaction
 
-Agent: Calls MCP tools and returns infrastructure status.
+```text
+User: Check the status of my containers.
+Agent: Queries the homelab health and container-list tools, then summarizes
+       the results.
+
+User: Stop the media container.
+Agent: Requests explicit confirmation for the proposed container action.
+User: SIM
+Agent: Reports the result returned by the MCP server.
+```
+
+## Getting started
+
+See [docs/PROJECT.md](docs/PROJECT.md) for requirements, Windows setup,
+starting the agent and SSH tunnel, and development checks.
